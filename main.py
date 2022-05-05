@@ -105,6 +105,7 @@ def disparity_block_matching(
     block_size: int = BLOCK_SIZE,
     search_block_range: int = SEARCH_BLOCK_RANGE,
 ) -> np.ndarray:
+
     """Calculate the disparity map of two images
 
     Args:
@@ -130,11 +131,14 @@ def disparity_block_matching(
     return disparity_map
 
 
-test = disparity_block_matching(cones_right, cones_left, BLOCK_SIZE, SEARCH_BLOCK_RANGE)
-# test2 = disparity(i_g, i_d, d_est, nn)
-# plt.subplot(1, 2, 1)
-plt.imshow(test[:, SEARCH_BLOCK_RANGE:], cmap="gray")
-# plt.subplot(1, 2, 2)
-# plt.imshow(test2[:, d_est:], cmap='gray')
-plt.title(f"N = {BLOCK_SIZE}")
-plt.show()
+if __name__ == "__main__":
+    test = disparity_block_matching(
+        cones_right, cones_left, BLOCK_SIZE, SEARCH_BLOCK_RANGE
+    )
+    # test2 = disparity(i_g, i_d, d_est, nn)
+    # plt.subplot(1, 2, 1)
+    plt.imshow(test[:, SEARCH_BLOCK_RANGE:], cmap="gray")
+    # plt.subplot(1, 2, 2)
+    # plt.imshow(test2[:, d_est:], cmap='gray')
+    plt.title(f"N = {BLOCK_SIZE}")
+    plt.show()
