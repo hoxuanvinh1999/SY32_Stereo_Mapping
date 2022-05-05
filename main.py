@@ -10,8 +10,8 @@ from skimage import color
 from skimage import util
 #%% Load images
 
-i_g = io.imread('photo/im0.png', as_gray=True)
-i_d = io.imread('photo/im1.png', as_gray=True)
+i_g = io.imread('photo/cones/im2.png', as_gray=True)
+i_d = io.imread('photo/cones/im6.png', as_gray=True)
 plt.subplot(1, 2, 1)
 plt.imshow(i_g, cmap='gray')
 plt.subplot(1, 2, 2)
