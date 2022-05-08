@@ -6,6 +6,7 @@ Stereovision projet
 
 #%% Imports
 
+import sys
 from matplotlib import pyplot as plt
 import numpy as np
 from PIL import Image
@@ -42,23 +43,13 @@ def disparity_block_matching(
     Returns:
         np.ndarray: The disparity map after applying the block matching algorithm
     """
-    # image_left = gauss_pyramid_rgb(
-    #     np.asarray(Image.open(image_left)), gauss_pyramid_down
-    # )
-    # image_right = gauss_pyramid_rgb(
-    #     np.asarray(Image.open(image_right)), gauss_pyramid_down
-    # )
-    # image_left = np.asarray(Image.open(image_left_path).convert("L"))
-    # image_right = np.asarray(Image.open(image_right_path).convert("L"))
+
     print(f"cones_left: {image_left.shape}")
     print(f"cones_right: {image_right.shape}")
 
     n_rows, n_cols = image_left.shape
     disparity_map = np.zeros(image_left.shape, dtype=np.uint8)
     disparity_range_adjust = 255 / disparity_range
-
-    # dp_image_left = dynamic_programming(image_left, block_size, np.square)
-    # dp_image_right = dynamic_programming(image_right, block_size, np.square)
 
     for row in tqdm(range(n_rows - block_size)):
         for col in range(n_cols - block_size):
@@ -126,7 +117,7 @@ def disparity_block_matching_rgb(
 
     disparity_map = np.full(image_left.shape, 255, dtype=np.uint8)
 
-    for i in range(3):
+    for i in tqdm(range(3)):
         disparity_map[:, :, i] = disparity_block_matching(
             image_left[:, :, i], image_right[:, :, i], block_size, disparity_range
         )
@@ -134,13 +125,9 @@ def disparity_block_matching_rgb(
 
 
 if __name__ == "__main__":
-    # depth = disparity_block_matching("photo/cones/im2.png", "photo/cones/im6.png")
-    depth = disparity_block_matching_rgb("photo/cones/im2.png", "photo/cones/im6.png")
-    # depth = gauss_pyramid_up(depth)
+    depth = disparity_block_matching_rgb("photo/teddy/im2.png", "photo/teddy/im6.png")
     depth = expand_image(depth)
-    plt.imsave("photo/cones/depth.png", depth)
-    depth = np.asarray(Image.open("photo/cones/depth.png").convert("L"))
+    plt.imsave("photo/teddy/depth.png", depth)
+    depth = np.asarray(Image.open("photo/teddy/depth.png").convert("L"))
     depth = depth[:-1, :]
-    print(depth.shape)
-    Image.fromarray(depth).save("photo/cones/depth_gr.png")
-    # Image.fromarray(depth).save("photo/cones/depth.png")
+    Image.fromarray(depth).save("photo/teddy/depth_gr.png")

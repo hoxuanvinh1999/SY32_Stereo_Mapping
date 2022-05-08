@@ -2,8 +2,7 @@
 Testing module
 """
 
-from optimize_methods import almost_equal, sub_pixel_estimation, dynamic_programming
-import numpy as np
+from optimize_methods import almost_equal, sub_pixel_estimation
 
 
 def test_spe():
