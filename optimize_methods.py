@@ -5,8 +5,6 @@ This module contains methods to optimize the block matching algorithm
 from typing import Callable
 
 import numpy as np
-from matplotlib import pyplot as plt
-from PIL import Image
 from scipy.signal import convolve2d
 
 
@@ -26,30 +24,30 @@ def almost_equal(num_1: float, num_2: float, threshold: float = 0.0001) -> bool:
 
 
 def sub_pixel_estimation(
-    disparity_and_sad_1: tuple, disparity_and_sad_2: tuple, disparity_and_sad_3: tuple
+    disparity_and_measure_1: tuple,
+    disparity_and_measure_2: tuple,
+    disparity_and_measure_3: tuple,
 ) -> tuple:
     """Calculate sub_pixel estimation
 
     Args:
-        disparity_and_sad_1 (tuple): first couple of disparity value and measure value
-        disparity_and_sad_2 (tuple): second couple of disparity value and measure value
-        disparity_and_sad_3 (tuple): third couple of disparity value and measure value
+        disparity_and_measure_1 (tuple): first couple of disparity value and measure value
+        disparity_and_measure_2 (tuple): second couple of disparity value and measure value
+        disparity_and_measure_3 (tuple): third couple of disparity value and measure value
 
     Returns:
         tuple: sought couple of value disparity having measure minimum
     """
-    disparity_1, sad_1 = disparity_and_sad_1
-    disparity_2, sad_2 = disparity_and_sad_2
-    disparity_3, sad_3 = disparity_and_sad_3
+    disparity_1, measure_1 = disparity_and_measure_1
+    disparity_2, measure_2 = disparity_and_measure_2
+    disparity_3, measure_3 = disparity_and_measure_3
 
-    # The function returns sad if sad = 0
-
-    if sad_1 == 0:
-        return (disparity_1, sad_1)
-    if sad_2 == 0:
-        return (disparity_2, sad_2)
-    if sad_3 == 0:
-        return (disparity_3, sad_3)
+    if measure_1 == 0:
+        return (disparity_1, measure_1)
+    if measure_2 == 0:
+        return (disparity_2, measure_2)
+    if measure_3 == 0:
+        return (disparity_3, measure_3)
 
     # Now if one of our disparity = 0, add epsilon into it
     # so that the division by 0 could be avoided
@@ -74,23 +72,23 @@ def sub_pixel_estimation(
 
     A1 = disparity_2 - disparity_2**2 / disparity_1
     A2 = 1 - disparity_2**2 / disparity_1**2
-    A3 = -sad_1 * disparity_2**2 / disparity_1**2 + sad_2
+    A3 = -measure_1 * disparity_2**2 / disparity_1**2 + measure_2
     B1 = disparity_3 - disparity_3**2 / disparity_1
     B2 = 1 - disparity_3**2 / disparity_1**2
-    B3 = -sad_1 * disparity_3**2 / disparity_1**2 + sad_3
+    B3 = -measure_1 * disparity_3**2 / disparity_1**2 + measure_3
 
     # Calculation of a,b and c
 
     c = (A3 / A1 - B3 / B1) / (A2 / A1 - B2 / B1)
     b = (A3 - c * A2) / A1
-    a = (sad_1 - b * disparity_1 - c) / disparity_1**2
+    a = (measure_1 - b * disparity_1 - c) / disparity_1**2
 
-    # Now with function y = f(x) = ax^2 + bx + c with y is sad and x is disparity
+    # Now with function y = f(x) = ax^2 + bx + c with y is the measure and x is disparity
     # calculating the extreme point of this equation
 
     disparity_min = -b / (2 * a)
-    sad_min = c - b**2 / (4 * a)
-    return (disparity_min, sad_min)
+    measure_min = c - b**2 / (4 * a)
+    return (disparity_min, measure_min)
 
 
 def gauss_pyramid_down(image: np.ndarray, levels=1):
@@ -164,13 +162,3 @@ def expand_image(image: np.ndarray) -> np.ndarray:
         img_expanded[row * 2 : row * 2 + 2, ::2] = image[row, :]
         img_expanded[row * 2 : row * 2 + 2, 1::2] = image[row, :]
     return img_expanded
-
-
-if __name__ == "__main__":
-    img = np.asarray(Image.open("cones/im2.png"))
-    # pyr = gauss_pyramid_rgb(img, gauss_pyramid_down)
-    # plt.imsave("gauss_pyr.png", pyr)
-    # pyr = gauss_pyramid_up(img)
-    pyr = expand_image(img)
-    plt.imsave("gauss_pyr_up.png", pyr)
-    # Image.fromarray(pyr).save("gauss_pyr.png")

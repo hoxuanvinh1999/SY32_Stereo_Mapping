@@ -38,15 +38,12 @@ def disparity_block_matching(
         pixel_vals_1 (np.ndarray): Pixel block from the first image
         pixel_vals_2 (np.ndarray): Pixel block from the second image
         block_size (int, optional): Size of the matched block. Defaults to BLOCK_SIZE.
-        disparity_range (int, optional): Number of pixels to search (should be power of 2).
+        disparity_range (int, optional): Number of pixels to search.
                                             Defaults to DISPARITY_RANGE.
 
     Returns:
         np.ndarray: The disparity map after applying the block matching algorithm
     """
-
-    print(f"cones_left: {image_left.shape}")
-    print(f"cones_right: {image_right.shape}")
 
     n_rows, n_cols = image_left.shape
     disparity_map = np.zeros(image_left.shape, dtype=np.uint8)
@@ -59,8 +56,8 @@ def disparity_block_matching(
             ].astype(int)
 
             sought_disparity = disparity_range
-            min_sad = 10**12
-            list_sad = np.zeros(shape=(disparity_range + 1))
+            min_measure = 10**12
+            list_measure = np.zeros(shape=(disparity_range + 1))
             for disparity in range(disparity_range):
                 if col + block_size - disparity >= 0 and col - disparity >= 0:
                     block_right = image_right[
@@ -68,21 +65,20 @@ def disparity_block_matching(
                         col - disparity : (col + block_size - disparity),
                     ].astype(int)
 
-                    sad = np.sum(np.square(block_left - block_right))
-                    list_sad[disparity] = sad
-                    # print(f"sad: {sad}; min_sad: {min_sad}, disparity: {disparity}")
-                    if sad < min_sad:
-                        min_sad = sad
+                    measure = np.sum(np.square(block_left - block_right))
+                    list_measure[disparity] = measure
+
+                    if measure < min_measure:
+                        min_measure = measure
                         sought_disparity = disparity
 
-            # print(f"sought_disparity: {sought_disparity}")
             if not (
-                almost_equal(min_sad, 0)
+                almost_equal(min_measure, 0)
                 or sought_disparity == 0
                 or sought_disparity == disparity_range - 1
             ):
                 couples = (
-                    (sought_disparity + i, list_sad[sought_disparity + i])
+                    (sought_disparity + i, list_measure[sought_disparity + i])
                     for i in [-1, 0, 1]
                 )
                 sought_disparity = sub_pixel_estimation(*couples)[0]
