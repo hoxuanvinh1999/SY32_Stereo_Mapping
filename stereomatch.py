@@ -6,6 +6,7 @@ Stereovision projet
 
 #%% Imports
 
+from shutil import ExecError
 import sys
 from matplotlib import pyplot as plt
 import numpy as np
@@ -125,9 +126,18 @@ def disparity_block_matching_rgb(
 
 
 if __name__ == "__main__":
-    depth = disparity_block_matching_rgb("photo/teddy/im2.png", "photo/teddy/im6.png")
+    if len(sys.argv) == 3:
+        output_image = "depth.png"
+    elif len(sys.argv) == 4:
+        output_image = sys.argv[3]
+    else:
+        raise ExecError("Inserter 2 ou 3 arguments")
+
+    left_image, right_image = sys.argv[1], sys.argv[2]
+
+    depth = disparity_block_matching_rgb(left_image, right_image)
     depth = expand_image(depth)
-    plt.imsave("photo/teddy/depth.png", depth)
-    depth = np.asarray(Image.open("photo/teddy/depth.png").convert("L"))
+    plt.imsave(output_image, depth)
+    depth = np.asarray(Image.open(output_image).convert("L"))
     depth = depth[:-1, :]
-    Image.fromarray(depth).save("photo/teddy/depth_gr.png")
+    Image.fromarray(depth).save(output_image)
