@@ -12,8 +12,8 @@ from PIL import Image
 from tqdm import tqdm
 from optimize_methods import (
     almost_equal,
+    expand_image,
     gauss_pyramid_down,
-    gauss_pyramid_up,
     sub_pixel_estimation,
     gauss_pyramid_rgb,
 )
@@ -27,7 +27,7 @@ from optimize_methods import (
 # i_d = filters.convolve(i_d, h)
 
 DISPARITY_RANGE = 32  # In pixels
-BLOCK_SIZE = 5
+BLOCK_SIZE = 7
 
 
 def sum_of_abs_diff(pixel_vals_1: np.ndarray, pixel_vals_2: np.ndarray) -> float:
@@ -242,7 +242,8 @@ def disparity_block_matching_rgb(
 if __name__ == "__main__":
     # depth = disparity_block_matching("photo/cones/im2.png", "photo/cones/im6.png")
     depth = disparity_block_matching_rgb("photo/cones/im2.png", "photo/cones/im6.png")
-    depth = gauss_pyramid_up(depth)
+    # depth = gauss_pyramid_up(depth)
+    depth = expand_image(depth)
     plt.imsave("photo/cones/depth.png", depth)
     depth = np.asarray(Image.open("photo/cones/depth.png").convert("L"))
     depth = depth[:-1, :]

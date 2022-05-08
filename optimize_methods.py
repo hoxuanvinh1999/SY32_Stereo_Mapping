@@ -182,16 +182,6 @@ def gauss_pyramid_down(image: np.ndarray, levels=1):
     return pyramids[-1]
 
 
-def gauss_pyramid_up(image: np.ndarray, levels=1):
-    """_summary_
-
-    Args:
-        image (np.ndarray): _description_
-        levels (int, optional): _description_. Defaults to 1.
-    """
-    return cv2.pyrUp(image)
-
-
 def gauss_pyramid_rgb(image: np.ndarray, pyramid_method: Callable) -> np.ndarray:
     """Gauss Pyramid for RGB image
 
@@ -213,10 +203,27 @@ def gauss_pyramid_rgb(image: np.ndarray, pyramid_method: Callable) -> np.ndarray
     return pyramid
 
 
+def expand_image(image: np.ndarray) -> np.ndarray:
+    """_summary_
+    Args:
+        img (tuple): the image source
+    Returns:
+        tuple: expanded image
+    """
+
+    n_rows, n_cols, _ = image.shape
+    img_expanded = np.zeros(shape=(n_rows * 2, n_cols * 2, 3), dtype=np.uint8)
+    for row in range(n_rows):
+        img_expanded[row * 2 : row * 2 + 2, ::2] = image[row, :]
+        img_expanded[row * 2 : row * 2 + 2, 1::2] = image[row, :]
+    return img_expanded
+
+
 if __name__ == "__main__":
     img = np.asarray(Image.open("cones/im2.png"))
-    pyr = gauss_pyramid_rgb(img, gauss_pyramid_down)
-    plt.imsave("gauss_pyr.png", pyr)
-    pyr = gauss_pyramid_up(img)
+    # pyr = gauss_pyramid_rgb(img, gauss_pyramid_down)
+    # plt.imsave("gauss_pyr.png", pyr)
+    # pyr = gauss_pyramid_up(img)
+    pyr = expand_image(img)
     plt.imsave("gauss_pyr_up.png", pyr)
     # Image.fromarray(pyr).save("gauss_pyr.png")
