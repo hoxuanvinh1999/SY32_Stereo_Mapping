@@ -18,110 +18,9 @@ from optimize_methods import (
     gauss_pyramid_rgb,
 )
 
-# from scipy.ndimage import filters
-
-#%% Filter ?
-
-# h = np.full((9, 9), 1) / (9**2)
-# i_g = filters.convolve(i_g, h)
-# i_d = filters.convolve(i_d, h)
 
 DISPARITY_RANGE = 32  # In pixels
 BLOCK_SIZE = 7
-
-
-def sum_of_abs_diff(pixel_vals_1: np.ndarray, pixel_vals_2: np.ndarray) -> float:
-    """Calculate SAD value of 2 blocks
-    Args:
-        pixel_vals_1 (numpy.ndarray): pixel block from the left image
-        pixel_vals_2 (numpy.ndarray): pixel block from the right image
-
-    Returns:
-        float: Sum of absolute difference between individual pixels
-    """
-
-    if pixel_vals_1.shape != pixel_vals_2.shape:
-        raise AssertionError(
-            (
-                "Dimensions of two blocks are not the same!"
-                f"{pixel_vals_1.shape} != {pixel_vals_2.shape}."
-            )
-        )
-
-    return np.sum(np.square(pixel_vals_1 - pixel_vals_2))
-
-
-def compare_blocks(
-    pixel: tuple,
-    block_left: np.ndarray,
-    image_right: np.ndarray,
-    block_size: int = BLOCK_SIZE,
-    search_block_range: int = DISPARITY_RANGE,
-) -> tuple:
-    """
-    Compare left block of pixels with multiple blocks from the right image using SEARCH_BLOCK_SIZE
-    to constrain the search in the right image.
-
-    Args:
-        pixel(tuple): coordinate of the pixel
-        block_left (numpy.ndarray): containing pixel values within the block selected from the
-                                    left image
-        image_right (numpy.ndarray]): containing pixel values for the entrire right image
-        block_size (int, optional): Block of pixels width and height. Default to BLOCK_SIZE.
-        search_block_range (int, optional): Number of pixels to search.
-                                            Default to SEARCH_BLOCK_RANGE.
-
-    Returns:
-        tuple: (row_index, col_index) row and column index of the best matching block
-                                      in the right image.
-    """
-
-    n_rows, n_cols = pixel
-    search_block_range_adjust = 255 / search_block_range
-
-    # Get search range for the right image
-    col_min = max(0, n_cols - search_block_range)
-    col_max = min(image_right.shape[1] - block_size, n_cols + search_block_range)
-
-    # TODO: Might need to add edge cases for current pixel
-    min_sad = float("inf")
-    # list_sad = [0] * image_right.shape[1]
-    col_sought_pixel = None
-    for n_cols in range(col_min, col_max):
-        # right_row_index = max(0, min(image_right.shape[1], row_index + block_size))
-        # right_col_index = max(0, min(image_right.shape[0], col_index + block_size))
-
-        block_right = image_right[
-            n_rows : n_rows + block_size, n_cols : n_cols + block_size
-        ].astype(int)
-        # print(f"{row} {col} {block_right.shape}")
-        sad = sum_of_abs_diff(block_left, block_right)
-        # list_sad[n_cols] = sad
-        if sad < min_sad:
-            col_sought_pixel = n_cols
-            min_sad = sad
-
-    # if (
-    #     almost_equal(min_sad, 0)
-    #     or col_sought_pixel == 0
-    #     or col_sought_pixel == image_right.shape[1] - 1
-    # ):
-    #     return abs(col_sought_pixel - pixel[1])
-
-    # couples = (
-    #     (col_sought_pixel + i - pixel[1], list_sad[col_sought_pixel + i])
-    #     for i in [-1, 0, 1]
-    # )
-    # left_couple = (sought_coord[1] - 1 - col_index, list_sad[sought_coord[1] - 1])
-    # current_couple = (sought_coord[1] - col_index, list_sad[sought_coord[1]])
-    # right_couple = (sought_coord[1] + 1 - col_index, list_sad[sought_coord[1] + 1])
-    # return abs(np.round(sub_pixel_estimation(*couples)[0]))
-    # return abs(col_sought_pixel - 1 / 2 * (C[2] - C[0]) / (C[0] - 2 * C[1] + C[2]))
-
-    return (col_sought_pixel - pixel[1]) * search_block_range_adjust
-
-
-#%% Disparity computation
 
 
 def disparity_block_matching(
@@ -174,14 +73,9 @@ def disparity_block_matching(
                 if col + block_size - disparity >= 0 and col - disparity >= 0:
                     block_right = image_right[
                         row : row + block_size,
-                        col - disparity : (col + block_size - disparity)
+                        col - disparity : (col + block_size - disparity),
                     ].astype(int)
 
-                    # sad = np.sum(
-                    #     np.sqrt(
-                    #         np.sum(np.square(block_left - block_right), axis=(2, 1))
-                    #     )
-                    # )
                     sad = np.sum(np.square(block_left - block_right))
                     list_sad[disparity] = sad
                     # print(f"sad: {sad}; min_sad: {min_sad}, disparity: {disparity}")

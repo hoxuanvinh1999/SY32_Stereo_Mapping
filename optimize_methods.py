@@ -3,10 +3,10 @@ This module contains methods to optimize the block matching algorithm
 """
 
 from typing import Callable
-from PIL import Image
-from matplotlib import pyplot as plt
+
 import numpy as np
-import cv2
+from matplotlib import pyplot as plt
+from PIL import Image
 from scipy.signal import convolve2d
 
 
@@ -91,59 +91,6 @@ def sub_pixel_estimation(
     disparity_min = -b / (2 * a)
     sad_min = c - b**2 / (4 * a)
     return (disparity_min, sad_min)
-
-
-def dynamic_programming(
-    image: np.ndarray, block_size: int, measure_func: Callable
-) -> np.ndarray:
-    """Calculate the measure table of blocks of every pixel by using dynamic programming
-
-    Args:
-        image (np.ndarray): input image.
-        block_size (int): size of the block.
-        measure_func(Callable): Corresponding measurement function (SAD, SSD, etc)
-
-    Returns:
-        np.ndarray: mesure value table
-    """
-    n_rows, n_cols = image.shape
-    res = np.zeros(image.shape, np.uint32)
-    dp_table = np.zeros(image.shape, np.uint32)
-
-    # store the sum in dp[row][col] where the sum from [0, 0] to [row, col] is computed.
-    for row in range(n_rows):
-        for col in range(n_cols):
-            sum_block = measure_func(image[row][col])
-            if col > 0:
-                sum_block += dp_table[row][col - 1]
-            if row > 0:
-                sum_block += dp_table[row - 1][col]
-            if col > 0 and row > 0:
-                sum_block -= dp_table[row - 1][col - 1]
-            dp_table[row][col] = sum_block
-
-    for row in range(n_rows - block_size + 1):
-        for col in range(n_cols - block_size + 1):
-            if row > 0 and col > 0:
-                res[row][col] = (
-                    dp_table[row + block_size - 1][col + block_size - 1]
-                    + dp_table[row - 1][col - 1]
-                    - dp_table[row - 1][col + block_size - 1]
-                    - dp_table[row + block_size - 1][col - 1]
-                )
-            elif row > 0:
-                res[row][col] = (
-                    dp_table[row + block_size - 1][col + block_size - 1]
-                    - dp_table[row - 1][col + block_size - 1]
-                )
-            elif col > 0:
-                res[row][col] = (
-                    dp_table[row + block_size - 1][col + block_size - 1]
-                    - dp_table[row + block_size - 1][col - 1]
-                )
-            else:
-                res[row][col] = dp_table[row + block_size - 1][col + block_size - 1]
-    return res
 
 
 def gauss_pyramid_down(image: np.ndarray, levels=1):
